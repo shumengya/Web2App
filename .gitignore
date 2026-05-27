@@ -1,0 +1,12 @@
+node_modules/
+web/dist/
+server/dist/
+uploads/
+data/
+.env
+*.db
+*.db-journal
+.DS_Store
+target/
+template/dist/*
+!template/dist/index.html

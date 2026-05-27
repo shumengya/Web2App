@@ -1,0 +1,23 @@
+[package]
+name = "web2app-template"
+version = "1.0.0"
+description = "Web2App static site shell"
+authors = ["web2app"]
+edition = "2021"
+
+[lib]
+name = "web2app_template_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+codegen-units = 1
+lto = true
+strip = true

@@ -1,0 +1,185 @@
+name: Build App
+
+on:
+  workflow_dispatch:
+    inputs:
+      job_id:
+        description: Build job ID
+        required: true
+        type: string
+      app_name:
+        description: Application display name
+        required: true
+        type: string
+      app_identifier:
+        description: Application bundle identifier
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  JOB_ID: ${{ inputs.job_id }}
+  APP_NAME: ${{ inputs.app_name }}
+  APP_IDENTIFIER: ${{ inputs.app_identifier }}
+  NDK_VERSION: "27.2.12479018"
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Prepare template
+        run: node .github/scripts/prepare-template.mjs
+
+      - name: Install dependencies
+        run: npm ci
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: template/src-tauri -> target
+
+      - name: Build Windows app
+        working-directory: template
+        run: npm run tauri build
+
+      - name: Collect Windows artifacts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts/windows | Out-Null
+          Get-ChildItem -Path "template/src-tauri/target/release/bundle" -Recurse -Include *.exe,*.msi |
+            Copy-Item -Destination artifacts/windows -Force
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: artifacts/windows/*
+          if-no-files-found: error
+
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK components
+        run: sdkmanager "platforms;android-34" "build-tools;34.0.0" "ndk;${{ env.NDK_VERSION }}"
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: template/src-tauri -> target
+
+      - name: Prepare template
+        run: node .github/scripts/prepare-template.mjs
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Initialize Android project
+        working-directory: template
+        run: npm run tauri android init
+        env:
+          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
+
+      - name: Build Android APK
+        working-directory: template
+        run: npm run tauri android build -- --apk
+        env:
+          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
+
+      - name: Collect Android artifacts
+        run: |
+          mkdir -p artifacts/android
+          find template/src-tauri/gen/android -name "*.apk" -exec cp {} artifacts/android/ \;
+          find template/src-tauri -path "*/build/outputs/apk/*" -name "*.apk" -exec cp {} artifacts/android/ \;
+          ls -la artifacts/android
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-build
+          path: artifacts/android/*
+          if-no-files-found: error
+
+  finalize:
+    needs: [build-windows, build-android]
+    runs-on: ubuntu-latest
+    if: always() && needs.build-windows.result == 'success' && needs.build-android.result == 'success'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-build
+          path: release-assets/windows
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-build
+          path: release-assets/android
+
+      - name: Rename release assets
+        run: |
+          mkdir -p release-assets/final
+          shopt -s nullglob
+          for file in release-assets/windows/*; do
+            base="$(basename "$file")"
+            cp "$file" "release-assets/final/web2app-${{ inputs.job_id }}-windows-${base}"
+          done
+          for file in release-assets/android/*; do
+            base="$(basename "$file")"
+            cp "$file" "release-assets/final/web2app-${{ inputs.job_id }}-android-${base}"
+          done
+          ls -la release-assets/final
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ inputs.job_id }}
+          name: Web2App ${{ inputs.app_name }} (${{ inputs.job_id }})
+          body: |
+            Automated build for **${{ inputs.app_name }}** (`${{ inputs.app_identifier }}`).
+
+            - Windows desktop installer/portable binary
+            - Android APK (demo signing, sideload only)
+          draft: false
+          prerelease: true
+          files: release-assets/final/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Remove uploaded site zip
+        run: |
+          path="builds/${{ inputs.job_id }}/site.zip"
+          sha=$(gh api repos/${{ github.repository }}/contents/$path --jq .sha 2>/dev/null || true)
+          if [ -n "$sha" ]; then
+            gh api repos/${{ github.repository }}/contents/$path \
+              -X DELETE \
+              -f message="chore: cleanup build ${{ inputs.job_id }}" \
+              -f sha="$sha"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
