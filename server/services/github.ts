@@ -1,10 +1,16 @@
+import "../load-env.js";
 import { Octokit } from "octokit";
 
-const owner = process.env.GITHUB_OWNER ?? "";
-const repo = process.env.GITHUB_REPO ?? "";
-const token = process.env.GITHUB_TOKEN ?? "";
+function getGitHubConfig() {
+  return {
+    owner: (process.env.GITHUB_OWNER ?? "").trim(),
+    repo: (process.env.GITHUB_REPO ?? "").trim(),
+    token: (process.env.GITHUB_TOKEN ?? "").trim(),
+  };
+}
 
 function getOctokit(): Octokit {
+  const { owner, repo, token } = getGitHubConfig();
   if (!owner || !repo || !token) {
     throw new Error(
       "Missing GITHUB_OWNER, GITHUB_REPO, or GITHUB_TOKEN environment variables",
@@ -14,10 +20,12 @@ function getOctokit(): Octokit {
 }
 
 export function getRepoInfo() {
+  const { owner, repo } = getGitHubConfig();
   return { owner, repo };
 }
 
 export async function uploadSiteZip(jobId: string, zipBuffer: Buffer): Promise<void> {
+  const { owner, repo } = getGitHubConfig();
   const octokit = getOctokit();
   const path = `builds/${jobId}/site.zip`;
   const content = zipBuffer.toString("base64");
@@ -55,6 +63,7 @@ export async function triggerBuildWorkflow(input: {
   appName: string;
   appIdentifier: string;
 }): Promise<number> {
+  const { owner, repo } = getGitHubConfig();
   const octokit = getOctokit();
 
   await octokit.rest.actions.createWorkflowDispatch({
@@ -95,6 +104,7 @@ export async function triggerBuildWorkflow(input: {
 }
 
 export async function getWorkflowRun(runId: number) {
+  const { owner, repo } = getGitHubConfig();
   const octokit = getOctokit();
   const { data } = await octokit.rest.actions.getWorkflowRun({
     owner,
@@ -108,6 +118,7 @@ export async function getReleaseAssets(jobId: string): Promise<{
   windowsUrl: string | null;
   androidUrl: string | null;
 }> {
+  const { owner, repo } = getGitHubConfig();
   const octokit = getOctokit();
   const tag = `build-${jobId}`;
 
@@ -146,6 +157,7 @@ export async function getReleaseAssets(jobId: string): Promise<{
 }
 
 export function getActionsRunUrl(runId: number | null): string | null {
+  const { owner, repo } = getGitHubConfig();
   if (!runId || !owner || !repo) return null;
   return `https://github.com/${owner}/${repo}/actions/runs/${runId}`;
 }

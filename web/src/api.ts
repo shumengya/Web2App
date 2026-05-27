@@ -19,26 +19,52 @@ export interface Build {
   actionsUrl?: string | null;
 }
 
-export async function createBuild(formData: FormData): Promise<{ id: string }> {
-  const response = await fetch("/api/builds", {
-    method: "POST",
-    body: formData,
-  });
+interface ApiErrorResponse {
+  error?: string;
+}
 
-  const data = await response.json();
+interface CreateBuildResponse {
+  id: string;
+  error?: string;
+}
+
+export async function createBuild(formData: FormData): Promise<{ id: string }> {
+  let response: Response;
+  try {
+    response = await fetch("/api/builds", {
+      method: "POST",
+      body: formData,
+    });
+  } catch {
+    throw new Error("无法连接后端服务，请确认已运行 npm run dev 且 server 已启动");
+  }
+
+  const data = (await readJson(response)) as CreateBuildResponse;
   if (!response.ok) {
-    throw new Error(data.error ?? "Upload failed");
+    throw new Error(data.error ?? "上传失败");
   }
   return data;
 }
 
 export async function fetchBuild(id: string): Promise<Build> {
   const response = await fetch(`/api/builds/${id}`);
-  const data = await response.json();
+  const data = (await readJson(response)) as Build;
   if (!response.ok) {
-    throw new Error(data.error ?? "Failed to load build");
+    const errorData = data as Build & ApiErrorResponse;
+    throw new Error(errorData.error ?? "Failed to load build");
   }
   return data;
+}
+
+async function readJson(response: Response): Promise<unknown> {
+  const text = await response.text();
+  if (!text) return {};
+
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    throw new Error(`Unexpected response from server: ${text.slice(0, 200)}`);
+  }
 }
 
 export function statusLabel(status: BuildStatus): string {

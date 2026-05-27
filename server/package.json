@@ -4,8 +4,12 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "postinstall": "node -e \"try{require('better-sqlite3')}catch{process.exit(1)}\" || npm rebuild better-sqlite3",
+    "predev": "npm rebuild better-sqlite3",
     "dev": "tsx watch index.ts",
+    "prebuild": "npm rebuild better-sqlite3",
     "build": "tsc",
+    "prestart": "npm rebuild better-sqlite3",
     "start": "node dist/index.js"
   },
   "dependencies": {
