@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import AdmZip from "adm-zip";
+import { generateAppIcons } from "./generate-app-icons.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "../..");
@@ -68,13 +69,6 @@ if (fs.existsSync(androidConfPath)) {
   patchTauriConfig(androidConfPath);
 }
 
-const iconCandidates = ["icon.png", "favicon.png", "logo.png"];
-for (const candidate of iconCandidates) {
-  const iconPath = path.join(distDir, candidate);
-  if (fs.existsSync(iconPath)) {
-    console.log(`Found icon candidate: ${candidate}`);
-    break;
-  }
-}
+generateAppIcons();
 
 console.log("Template prepared successfully");

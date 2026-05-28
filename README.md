@@ -92,9 +92,35 @@ powershell Compress-Archive -Path * -DestinationPath ../sample-site.zip -Force
 
 构建产物发布到 Release tag：`build-{job_id}`。
 
-### Android 说明
+### 应用图标
 
-- CI 中使用 debug/默认签名，适合 sideload 测试
+构建前会从上传 zip 的 `template/dist/` 中查找图标（根目录或单层子目录）：
+
+1. `logo.png`（优先）
+2. `favicon.ico`
+3. 若都未找到，使用模板内置默认图标
+
+找到后 CI 会执行 `tauri icon` 生成 Windows / Android 所需的多尺寸图标。
+
+### Android 签名与安装
+
+- CI 构建完成后会用 `apksigner` 对 APK **签名**，可直接侧载安装
+- 未配置 Secrets 时，workflow 会生成临时 CI 证书（密码 `web2app-ci`，仅适合 demo）
+- 生产环境建议在仓库 Settings → Secrets 配置：
+
+| Secret | 说明 |
+|--------|------|
+| `ANDROID_KEYSTORE_BASE64` | `.jks` 文件 base64 |
+| `ANDROID_KEYSTORE_PASSWORD` | keystore 密码 |
+| `ANDROID_KEY_PASSWORD` | key 密码 |
+| `ANDROID_KEY_ALIAS` | 别名，默认 `web2app` |
+
+本地生成 keystore：
+
+```bash
+bash scripts/generate-android-keystore.sh web2app-release.jks web2app
+```
+
 - 首次 Android 构建会在 CI 中执行 `tauri android init`
 - Android 构建依赖 NDK / SDK，workflow 已预装常见组件
 
@@ -117,7 +143,7 @@ powershell Compress-Archive -Path * -DestinationPath ../sample-site.zip -Force
 - 无登录鉴权，仅适合本地/内网 demo
 - GitHub Actions 有排队时间与额度限制
 - 大 zip 会短暂占用仓库空间（finalize 会尝试删除 `site.zip`）
-- Android APK 非 Play Store 发布级别
+- 未配置自有证书时，各次 CI 构建可能使用不同签名，无法覆盖安装旧版 APK
 
 ## 目录结构
 

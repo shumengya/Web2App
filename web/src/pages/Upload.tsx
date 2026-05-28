@@ -43,7 +43,8 @@ export default function Upload() {
     <section className="card">
       <h2>上传静态站点</h2>
       <p className="hint">
-        压缩包需包含 index.html，大小默认不超过 50MB。中文名用于界面展示，英文名用于安装包与
+        压缩包需包含 index.html，大小默认不超过 50MB。可选在 zip 根目录放置 logo.png 或
+        favicon.ico 作为应用图标（优先 logo.png）。中文名用于界面展示，英文名用于安装包与
         Bundle ID 生成。
       </p>
       <form className="form" onSubmit={onSubmit}>
