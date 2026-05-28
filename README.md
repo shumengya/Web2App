@@ -104,7 +104,7 @@ powershell Compress-Archive -Path * -DestinationPath ../sample-site.zip -Force
 
 ### Android 签名与安装
 
-- CI 构建完成后会用 `apksigner` 对 APK **签名**，可直接侧载安装
+- CI 先构建未签名 APK，再用 `apksigner` **签名**，可直接侧载安装（不修改 Gradle 配置，避免构建失败）
 - 未配置 Secrets 时，workflow 会生成临时 CI 证书（密码 `web2app-ci`，仅适合 demo）
 - 生产环境建议在仓库 Settings → Secrets 配置：
 

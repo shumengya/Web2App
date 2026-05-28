@@ -27,13 +27,4 @@ export WEB2APP_ANDROID_STORE_PASS="${STORE_PASS}"
 export WEB2APP_ANDROID_KEY_PASS="${KEY_PASS}"
 export WEB2APP_ANDROID_KEY_ALIAS="${KEY_ALIAS}"
 
-ANDROID_DIR="template/src-tauri/gen/android"
-if [ -d "${ANDROID_DIR}" ]; then
-  cat > "${ANDROID_DIR}/keystore.properties" <<EOF
-keyAlias=${KEY_ALIAS}
-password=${KEY_PASS}
-storeFile=${KEYSTORE_PATH}
-EOF
-fi
-
 echo "Android signing material ready at ${KEYSTORE_PATH}"

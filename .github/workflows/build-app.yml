@@ -117,17 +117,6 @@ jobs:
         env:
           NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
 
-      - name: Setup Android signing
-        run: bash .github/scripts/setup-android-signing.sh
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-
-      - name: Patch Android Gradle signing
-        run: node .github/scripts/patch-android-gradle.mjs
-
       - name: Build Android APK
         working-directory: template
         run: npm run tauri android build -- --apk
