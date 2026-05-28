@@ -42,10 +42,16 @@ if (!fs.existsSync(indexPath)) {
   process.exit(1);
 }
 
+function toSafeBinaryName(name, fallback) {
+  const ascii = name.replace(/[^a-zA-Z0-9_-]+/g, "");
+  return (ascii || fallback).slice(0, 64);
+}
+
 function patchTauriConfig(filePath) {
   const conf = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  const safeBinaryName = toSafeBinaryName(appName, `App${jobId}`);
   conf.productName = appName;
-  conf.mainBinaryName = appName.replace(/[^\w.-]+/g, "") || "Web2App";
+  conf.mainBinaryName = safeBinaryName;
   conf.identifier = appIdentifier;
   conf.version = "1.0.0";
   if (conf.app?.windows?.[0]) {
