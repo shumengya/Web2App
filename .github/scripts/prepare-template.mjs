@@ -7,11 +7,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "../..");
 
 const jobId = process.env.JOB_ID;
-const appName = process.env.APP_NAME;
+const appNameZh = process.env.APP_NAME;
+const appNameEn = process.env.APP_NAME_EN;
 const appIdentifier = process.env.APP_IDENTIFIER;
 
-if (!jobId || !appName || !appIdentifier) {
-  console.error("JOB_ID, APP_NAME, and APP_IDENTIFIER are required");
+if (!jobId || !appNameZh || !appNameEn || !appIdentifier) {
+  console.error(
+    "JOB_ID, APP_NAME, APP_NAME_EN, and APP_IDENTIFIER are required",
+  );
   process.exit(1);
 }
 
@@ -49,13 +52,13 @@ function toSafeBinaryName(name, fallback) {
 
 function patchTauriConfig(filePath) {
   const conf = JSON.parse(fs.readFileSync(filePath, "utf8"));
-  const safeBinaryName = toSafeBinaryName(appName, `App${jobId}`);
-  conf.productName = appName;
+  const safeBinaryName = toSafeBinaryName(appNameEn, `App${jobId}`);
+  conf.productName = appNameZh;
   conf.mainBinaryName = safeBinaryName;
   conf.identifier = appIdentifier;
   conf.version = "1.0.0";
   if (conf.app?.windows?.[0]) {
-    conf.app.windows[0].title = appName;
+    conf.app.windows[0].title = appNameZh;
   }
   fs.writeFileSync(filePath, `${JSON.stringify(conf, null, 2)}\n`);
 }

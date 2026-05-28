@@ -154,6 +154,27 @@ function sanitizeSegment(segment: string): string {
   return value.slice(0, 48);
 }
 
+export function validateEnglishAppName(input: string): string {
+  const value = input.trim();
+  if (!value) {
+    throw new ZipValidationError("应用英文名不能为空");
+  }
+  if (!/^[a-zA-Z][a-zA-Z0-9 _.-]*$/.test(value)) {
+    throw new ZipValidationError(
+      "应用英文名需以字母开头，仅支持英文字母、数字、空格、下划线和连字符",
+    );
+  }
+  return value;
+}
+
+export function validateChineseAppName(input: string): string {
+  const value = input.trim();
+  if (!value) {
+    throw new ZipValidationError("应用中文名不能为空");
+  }
+  return value;
+}
+
 export function slugifyIdentifier(input: string): string {
   return input
     .toLowerCase()

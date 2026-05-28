@@ -4,7 +4,8 @@ import { createBuild } from "../api";
 
 export default function Upload() {
   const navigate = useNavigate();
-  const [appName, setAppName] = useState("");
+  const [appNameZh, setAppNameZh] = useState("");
+  const [appNameEn, setAppNameEn] = useState("");
   const [identifier, setIdentifier] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -23,7 +24,8 @@ export default function Upload() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("appName", appName);
+      formData.append("appNameZh", appNameZh);
+      formData.append("appNameEn", appNameEn);
       if (identifier.trim()) {
         formData.append("identifier", identifier.trim());
       }
@@ -40,15 +42,29 @@ export default function Upload() {
   return (
     <section className="card">
       <h2>上传静态站点</h2>
-      <p className="hint">压缩包需包含 index.html，大小默认不超过 50MB。</p>
+      <p className="hint">
+        压缩包需包含 index.html，大小默认不超过 50MB。中文名用于界面展示，英文名用于安装包与
+        Bundle ID 生成。
+      </p>
       <form className="form" onSubmit={onSubmit}>
         <label>
-          应用名称
+          应用中文名
           <input
-            value={appName}
-            onChange={(e) => setAppName(e.target.value)}
+            value={appNameZh}
+            onChange={(e) => setAppNameZh(e.target.value)}
+            placeholder="我的应用"
+            required
+          />
+        </label>
+        <label>
+          应用英文名
+          <input
+            value={appNameEn}
+            onChange={(e) => setAppNameEn(e.target.value)}
             placeholder="My App"
             required
+            pattern="[a-zA-Z][a-zA-Z0-9 _.-]*"
+            title="以字母开头，仅含英文字母、数字、空格、下划线和连字符"
           />
         </label>
         <label>

@@ -19,6 +19,8 @@ import {
 import {
   normalizeAppIdentifier,
   slugifyIdentifier,
+  validateChineseAppName,
+  validateEnglishAppName,
   validateZipBuffer,
   ZipValidationError,
 } from "../services/zip.js";
@@ -54,13 +56,13 @@ buildsRouter.get("/:id", async (req, res) => {
 
 buildsRouter.post("/", upload.single("file"), async (req, res) => {
   try {
-    const appName = String(req.body.appName ?? "").trim();
+    const appNameZh = validateChineseAppName(
+      String(req.body.appNameZh ?? req.body.appName ?? ""),
+    );
+    const appNameEn = validateEnglishAppName(
+      String(req.body.appNameEn ?? ""),
+    );
     const identifierInput = String(req.body.identifier ?? "").trim();
-
-    if (!appName) {
-      res.status(400).json({ error: "appName is required" });
-      return;
-    }
 
     if (!req.file) {
       res.status(400).json({ error: "file is required" });
@@ -74,19 +76,25 @@ buildsRouter.post("/", upload.single("file"), async (req, res) => {
 
     const { normalizedBuffer } = validateZipBuffer(req.file.buffer, maxUploadBytes);
     const jobId = nanoid(10);
-    const slug = slugifyIdentifier(appName) || jobId.toLowerCase();
+    const slug = slugifyIdentifier(appNameEn) || jobId.toLowerCase();
     const appIdentifier = normalizeAppIdentifier(
       identifierInput || `com.web2app.${slug}`,
     );
 
-    insertBuild({ id: jobId, appName, appIdentifier });
+    insertBuild({
+      id: jobId,
+      appName: appNameZh,
+      appNameEn,
+      appIdentifier,
+    });
 
     await uploadSiteZip(jobId, normalizedBuffer);
     updateBuild(jobId, { status: "queued" });
 
     const workflowRunId = await triggerBuildWorkflow({
       jobId,
-      appName,
+      appName: appNameZh,
+      appNameEn,
       appIdentifier,
     });
 

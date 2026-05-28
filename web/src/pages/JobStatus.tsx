@@ -58,8 +58,12 @@ export default function JobStatus() {
               <dd>{build.id}</dd>
             </div>
             <div>
-              <dt>应用名称</dt>
+              <dt>应用中文名</dt>
               <dd>{build.appName}</dd>
+            </div>
+            <div>
+              <dt>应用英文名</dt>
+              <dd>{build.appNameEn}</dd>
             </div>
             <div>
               <dt>Bundle ID</dt>

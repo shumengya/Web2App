@@ -8,6 +8,7 @@ export type BuildStatus =
 export interface Build {
   id: string;
   appName: string;
+  appNameEn: string;
   appIdentifier: string;
   status: BuildStatus;
   workflowRunId: number | null;

@@ -15,6 +15,7 @@ export type BuildStatus =
 export interface BuildRecord {
   id: string;
   app_name: string;
+  app_name_en: string;
   app_identifier: string;
   status: BuildStatus;
   workflow_run_id: number | null;
@@ -36,19 +37,31 @@ export function getDb(): Database.Database {
   db = new Database(dbPath);
   const schema = fs.readFileSync(path.join(__dirname, "schema.sql"), "utf8");
   db.exec(schema);
+  migrateBuildsTable(db);
   return db;
+}
+
+function migrateBuildsTable(database: Database.Database) {
+  const columns = database
+    .prepare("PRAGMA table_info(builds)")
+    .all() as Array<{ name: string }>;
+
+  if (!columns.some((column) => column.name === "app_name_en")) {
+    database.exec("ALTER TABLE builds ADD COLUMN app_name_en TEXT NOT NULL DEFAULT ''");
+  }
 }
 
 export function insertBuild(record: {
   id: string;
   appName: string;
+  appNameEn: string;
   appIdentifier: string;
 }): BuildRecord {
   const database = getDb();
   database
     .prepare(
-      `INSERT INTO builds (id, app_name, app_identifier, status)
-       VALUES (@id, @appName, @appIdentifier, 'pending')`,
+      `INSERT INTO builds (id, app_name, app_name_en, app_identifier, status)
+       VALUES (@id, @appName, @appNameEn, @appIdentifier, 'pending')`,
     )
     .run(record);
 
@@ -105,6 +118,7 @@ export function toPublicBuild(record: BuildRecord) {
   return {
     id: record.id,
     appName: record.app_name,
+    appNameEn: record.app_name_en || record.app_name,
     appIdentifier: record.app_identifier,
     status: record.status,
     workflowRunId: record.workflow_run_id,

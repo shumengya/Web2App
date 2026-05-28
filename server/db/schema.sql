@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS builds (
   id TEXT PRIMARY KEY,
   app_name TEXT NOT NULL,
+  app_name_en TEXT NOT NULL DEFAULT '',
   app_identifier TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending',
   workflow_run_id INTEGER,

@@ -61,6 +61,7 @@ export async function uploadSiteZip(jobId: string, zipBuffer: Buffer): Promise<v
 export async function triggerBuildWorkflow(input: {
   jobId: string;
   appName: string;
+  appNameEn: string;
   appIdentifier: string;
 }): Promise<number> {
   const { owner, repo } = getGitHubConfig();
@@ -74,6 +75,7 @@ export async function triggerBuildWorkflow(input: {
     inputs: {
       job_id: input.jobId,
       app_name: input.appName,
+      app_name_en: input.appNameEn,
       app_identifier: input.appIdentifier,
     },
   });

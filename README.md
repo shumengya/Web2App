@@ -78,7 +78,7 @@ powershell Compress-Archive -Path * -DestinationPath ../sample-site.zip -Force
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| `POST` | `/api/builds` | `multipart/form-data`: `file`, `appName`, 可选 `identifier` |
+| `POST` | `/api/builds` | `multipart/form-data`: `file`, `appNameZh`, `appNameEn`, 可选 `identifier` |
 | `GET` | `/api/builds/:id` | 查询构建状态与下载链接 |
 | `GET` | `/api/builds` | 最近 20 条构建记录 |
 
@@ -103,7 +103,8 @@ powershell Compress-Archive -Path * -DestinationPath ../sample-site.zip -Force
 在 GitHub 仓库 Actions 页选择 **Build App**，手动填写：
 
 - `job_id`: 任意已上传目录名（需先存在 `builds/{job_id}/site.zip`）
-- `app_name`: Demo App
+- `app_name`: 演示应用
+- `app_name_en`: Demo App
 - `app_identifier`: com.web2app.demo
 
 ## 本地数据
