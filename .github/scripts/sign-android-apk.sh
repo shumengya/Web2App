@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ -z "${WEB2APP_ANDROID_KEYSTORE:-}" ]; then
+  # shellcheck source=setup-android-signing.sh
+  source "${SCRIPT_DIR}/setup-android-signing.sh"
+fi
+
 BUILD_TOOLS="${ANDROID_HOME}/build-tools/34.0.0"
 KEYSTORE="${WEB2APP_ANDROID_KEYSTORE:?Missing keystore}"
 STORE_PASS="${WEB2APP_ANDROID_STORE_PASS:?Missing store password}"
