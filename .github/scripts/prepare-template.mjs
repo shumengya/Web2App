@@ -18,6 +18,12 @@ if (!jobId || !appName || !appIdentifier) {
 const zipPath = path.join(root, "builds", jobId, "site.zip");
 const distDir = path.join(root, "template", "dist");
 const confPath = path.join(root, "template", "src-tauri", "tauri.conf.json");
+const androidConfPath = path.join(
+  root,
+  "template",
+  "src-tauri",
+  "tauri.android.conf.json",
+);
 
 if (!fs.existsSync(zipPath)) {
   console.error(`Missing upload: ${zipPath}`);
@@ -36,14 +42,22 @@ if (!fs.existsSync(indexPath)) {
   process.exit(1);
 }
 
-const conf = JSON.parse(fs.readFileSync(confPath, "utf8"));
-conf.productName = appName;
-conf.mainBinaryName = appName.replace(/[^\w.-]+/g, "") || "Web2App";
-conf.identifier = appIdentifier;
-conf.version = "1.0.0";
-conf.app.windows = conf.app.windows ?? [{}];
-conf.app.windows[0].title = appName;
-fs.writeFileSync(confPath, `${JSON.stringify(conf, null, 2)}\n`);
+function patchTauriConfig(filePath) {
+  const conf = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  conf.productName = appName;
+  conf.mainBinaryName = appName.replace(/[^\w.-]+/g, "") || "Web2App";
+  conf.identifier = appIdentifier;
+  conf.version = "1.0.0";
+  if (conf.app?.windows?.[0]) {
+    conf.app.windows[0].title = appName;
+  }
+  fs.writeFileSync(filePath, `${JSON.stringify(conf, null, 2)}\n`);
+}
+
+patchTauriConfig(confPath);
+if (fs.existsSync(androidConfPath)) {
+  patchTauriConfig(androidConfPath);
+}
 
 const iconCandidates = ["icon.png", "favicon.png", "logo.png"];
 for (const candidate of iconCandidates) {

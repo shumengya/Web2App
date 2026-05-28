@@ -16,7 +16,12 @@ import {
   triggerBuildWorkflow,
   uploadSiteZip,
 } from "../services/github.js";
-import { slugifyIdentifier, validateZipBuffer, ZipValidationError } from "../services/zip.js";
+import {
+  normalizeAppIdentifier,
+  slugifyIdentifier,
+  validateZipBuffer,
+  ZipValidationError,
+} from "../services/zip.js";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -69,9 +74,10 @@ buildsRouter.post("/", upload.single("file"), async (req, res) => {
 
     const { normalizedBuffer } = validateZipBuffer(req.file.buffer, maxUploadBytes);
     const jobId = nanoid(10);
-    const appIdentifier =
-      identifierInput ||
-      `com.web2app.${slugifyIdentifier(appName) || jobId.toLowerCase()}`;
+    const slug = slugifyIdentifier(appName) || jobId.toLowerCase();
+    const appIdentifier = normalizeAppIdentifier(
+      identifierInput || `com.web2app.${slug}`,
+    );
 
     insertBuild({ id: jobId, appName, appIdentifier });
 

@@ -93,10 +93,91 @@ function addDirectoryToZip(zip: AdmZip, dir: string, prefix: string) {
   }
 }
 
+const JAVA_RESERVED_SEGMENTS = new Set([
+  "abstract",
+  "assert",
+  "boolean",
+  "break",
+  "byte",
+  "case",
+  "catch",
+  "char",
+  "class",
+  "const",
+  "continue",
+  "default",
+  "do",
+  "double",
+  "else",
+  "enum",
+  "extends",
+  "final",
+  "finally",
+  "float",
+  "for",
+  "goto",
+  "if",
+  "implements",
+  "import",
+  "instanceof",
+  "int",
+  "interface",
+  "long",
+  "native",
+  "new",
+  "package",
+  "private",
+  "protected",
+  "public",
+  "return",
+  "short",
+  "static",
+  "strictfp",
+  "super",
+  "switch",
+  "synchronized",
+  "this",
+  "throw",
+  "throws",
+  "transient",
+  "try",
+  "void",
+  "volatile",
+  "while",
+]);
+
+function sanitizeSegment(segment: string): string {
+  let value = segment.toLowerCase().replace(/[^a-z0-9_]/g, "");
+  if (!value) return "app";
+  if (/^\d/.test(value)) value = `app${value}`;
+  if (JAVA_RESERVED_SEGMENTS.has(value)) value = `${value}app`;
+  return value.slice(0, 48);
+}
+
 export function slugifyIdentifier(input: string): string {
   return input
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, ".")
     .replace(/^\.+|\.+$/g, "")
-    .slice(0, 48);
+    .split(".")
+    .map(sanitizeSegment)
+    .filter(Boolean)
+    .join(".")
+    .slice(0, 120);
+}
+
+export function normalizeAppIdentifier(identifier: string): string {
+  const parts = identifier
+    .trim()
+    .split(".")
+    .map(sanitizeSegment)
+    .filter(Boolean);
+
+  if (parts.length < 2) {
+    throw new ZipValidationError(
+      "Bundle ID 至少需要两段，例如 com.example.myapp",
+    );
+  }
+
+  return parts.join(".");
 }

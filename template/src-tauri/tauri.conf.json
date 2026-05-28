@@ -3,7 +3,7 @@
   "productName": "Web2App",
   "mainBinaryName": "Web2App",
   "version": "1.0.0",
-  "identifier": "com.web2app.default",
+  "identifier": "com.web2app.app",
   "build": {
     "beforeDevCommand": "",
     "beforeBuildCommand": "",
