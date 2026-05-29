@@ -30,6 +30,10 @@ env:
   APP_IDENTIFIER: ${{ inputs.app_identifier }}
   APP_VERSION: ${{ inputs.app_version }}
   NDK_VERSION: "27.2.12479018"
+  # Faster release builds in CI; local release profile keeps full LTO.
+  CI: true
+  CARGO_PROFILE_RELEASE_LTO: false
+  CARGO_PROFILE_RELEASE_CODEGEN_UNITS: 16
 
 jobs:
   build-windows:
@@ -53,6 +57,7 @@ jobs:
       - uses: swatinem/rust-cache@v2
         with:
           workspaces: template/src-tauri -> target
+          shared-key: tauri-release
 
       - name: Build Windows app
         working-directory: template
@@ -101,16 +106,38 @@ jobs:
 
       - uses: android-actions/setup-android@v3
 
+      - name: Cache Android NDK
+        uses: actions/cache@v4
+        id: android-ndk-cache
+        with:
+          path: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
+          key: android-ndk-${{ env.NDK_VERSION }}-${{ runner.os }}
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('template/src-tauri/Cargo.lock', 'template/package.json') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
       - name: Install Android SDK components
-        run: sdkmanager "platforms;android-34" "build-tools;34.0.0" "ndk;${{ env.NDK_VERSION }}"
+        run: |
+          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+          if [ "${{ steps.android-ndk-cache.outputs.cache-hit }}" != "true" ]; then
+            sdkmanager "ndk;${{ env.NDK_VERSION }}"
+          fi
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+          targets: aarch64-linux-android
 
       - uses: swatinem/rust-cache@v2
         with:
           workspaces: template/src-tauri -> target
+          shared-key: tauri-release
 
       - name: Initialize Android project
         working-directory: template
@@ -120,14 +147,12 @@ jobs:
 
       - name: Build Android APK
         working-directory: template
-        run: npm run tauri android build -- --apk
+        run: npm run tauri android build -- --apk --target aarch64 --ci
         env:
           NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
 
       - name: Sign Android APK
-        run: |
-          source .github/scripts/setup-android-signing.sh
-          bash .github/scripts/sign-android-apk.sh
+        run: bash .github/scripts/sign-android-apk.sh
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -180,7 +205,7 @@ jobs:
             Automated build for **${{ inputs.app_name }}** (English: `${{ inputs.app_name_en }}`, version: `${{ inputs.app_version }}`, ID: `${{ inputs.app_identifier }}`).
 
             - Windows desktop installer/portable binary
-            - Android APK (signed for sideload install)
+            - Android APK (arm64-v8a, signed for sideload install)
           draft: false
           prerelease: true
           files: release-assets/final/*
