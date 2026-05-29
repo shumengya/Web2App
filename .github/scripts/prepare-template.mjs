@@ -2,7 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import AdmZip from "adm-zip";
-import { generateAppIcons } from "./generate-app-icons.mjs";
+import { BUNDLE_ICONS, generateAppIcons } from "./generate-app-icons.mjs";
+import { injectInAppNav } from "./inject-in-app-nav.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "../..");
@@ -75,20 +76,29 @@ function patchTauriConfig(filePath) {
   const conf = JSON.parse(fs.readFileSync(filePath, "utf8"));
   const safeBinaryName = toSafeBinaryName(appNameEn, `App${jobId}`);
   conf.productName = appNameZh;
-  conf.mainBinaryName = safeBinaryName;
+  if (filePath === confPath) {
+    conf.mainBinaryName = safeBinaryName;
+  }
   conf.identifier = appIdentifier;
   conf.version = appVersion;
   if (conf.app?.windows?.[0]) {
     conf.app.windows[0].title = appNameZh;
   }
+  conf.bundle = {
+    ...conf.bundle,
+    active: true,
+    icon: BUNDLE_ICONS,
+  };
   fs.writeFileSync(filePath, `${JSON.stringify(conf, null, 2)}\n`);
 }
+
+injectInAppNav(distDir);
 
 patchTauriConfig(confPath);
 if (fs.existsSync(androidConfPath)) {
   patchTauriConfig(androidConfPath);
 }
 
-generateAppIcons();
+generateAppIcons({ jobId });
 
 console.log("Template prepared successfully");

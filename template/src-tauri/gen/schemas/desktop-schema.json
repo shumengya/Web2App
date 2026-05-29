@@ -177,24 +177,6 @@
       "description": "Permission identifier",
       "oneOf": [
         {
-          "description": "Enables API config commands",
-          "type": "string",
-          "const": "allow-api-settings",
-          "markdownDescription": "Enables API config commands"
-        },
-        {
-          "description": "Enables coin list and refresh interval commands",
-          "type": "string",
-          "const": "allow-coin-settings",
-          "markdownDescription": "Enables coin list and refresh interval commands"
-        },
-        {
-          "description": "Enables the fetch_tickers command",
-          "type": "string",
-          "const": "allow-fetch-tickers",
-          "markdownDescription": "Enables the fetch_tickers command"
-        },
-        {
           "description": "Default core plugins set.\n#### This default permission set includes:\n\n- `core:path:default`\n- `core:event:default`\n- `core:window:default`\n- `core:webview:default`\n- `core:app:default`\n- `core:image:default`\n- `core:resources:default`\n- `core:menu:default`\n- `core:tray:default`",
           "type": "string",
           "const": "core:default",

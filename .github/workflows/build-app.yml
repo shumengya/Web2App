@@ -145,6 +145,11 @@ jobs:
         env:
           NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
 
+      - name: Regenerate app icons for Android
+        run: node .github/scripts/generate-app-icons.mjs
+        env:
+          JOB_ID: ${{ inputs.job_id }}
+
       - name: Build Android APK
         working-directory: template
         run: npm run tauri android build -- --apk --target aarch64 --ci
