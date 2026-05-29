@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { fetchBuild, statusLabel, type Build } from "../api/client";
+import {
+  formatDateTime,
+  getBuildDuration,
+  isBuildFinished,
+} from "../lib/duration";
 
 export default function JobStatus() {
   const { id } = useParams<{ id: string }>();
   const [build, setBuild] = useState<Build | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     if (!id) return;
@@ -36,6 +42,14 @@ export default function JobStatus() {
       cancelled = true;
     };
   }, [id]);
+
+  useEffect(() => {
+    if (!build || isBuildFinished(build.status)) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [build?.status, build?.id]);
+
+  const duration = build ? getBuildDuration(build, now) : null;
 
   if (!id) {
     return <p className="error-text">缺少任务 ID</p>;
@@ -88,6 +102,22 @@ export default function JobStatus() {
                   <span className={`badge badge-${build.status}`}>
                     {statusLabel(build.status)}
                   </span>
+                </dd>
+              </div>
+              <div>
+                <dt>开始时间</dt>
+                <dd>{formatDateTime(build.createdAt)}</dd>
+              </div>
+              {duration?.finished ? (
+                <div>
+                  <dt>结束时间</dt>
+                  <dd>{formatDateTime(build.updatedAt)}</dd>
+                </div>
+              ) : null}
+              <div>
+                <dt>{duration?.finished ? "构建总耗时" : "已用时间"}</dt>
+                <dd>
+                  <strong>{duration?.text ?? "—"}</strong>
                 </dd>
               </div>
             </dl>

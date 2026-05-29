@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchBuilds, statusLabel, type Build } from "../api/client";
+import { getBuildDuration, isBuildFinished } from "../lib/duration";
 
 export default function BuildList() {
   const [builds, setBuilds] = useState<Build[]>([]);
@@ -32,7 +33,10 @@ export default function BuildList() {
                   {build.appName} ({build.appNameEn})
                 </Link>
                 <div className="meta-line">
-                  v{build.appVersion} · {build.id} · {statusLabel(build.status)}{" "}
+                  v{build.appVersion} · {statusLabel(build.status)}
+                  {isBuildFinished(build.status)
+                    ? ` · 耗时 ${getBuildDuration(build).text}`
+                    : null}{" "}
                   · {new Date(build.createdAt).toLocaleString()}
                 </div>
               </li>
