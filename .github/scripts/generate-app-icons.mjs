@@ -8,7 +8,7 @@ const root = path.resolve(__dirname, "../..");
 const distDir = path.join(root, "template", "dist");
 const templateDir = path.join(root, "template");
 
-const ICON_PRIORITY = ["logo.png", "favicon.ico"];
+const ICON_PRIORITY = ["logo.png", "logo.jpg", "logo.jpeg", "favicon.ico"];
 
 function findIconSource(baseDir) {
   for (const name of ICON_PRIORITY) {

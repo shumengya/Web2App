@@ -19,6 +19,17 @@ if (!jobId || !appNameZh || !appNameEn || !appIdentifier) {
   process.exit(1);
 }
 
+function readAppVersion(jobId) {
+  const versionFile = path.join(root, "builds", jobId, "version.txt");
+  if (fs.existsSync(versionFile)) {
+    const fromFile = fs.readFileSync(versionFile, "utf8").trim();
+    if (fromFile) return fromFile;
+  }
+  const fromEnv = (process.env.APP_VERSION ?? "").trim();
+  return fromEnv || "1.0.0";
+}
+
+const appVersion = readAppVersion(jobId);
 const zipPath = path.join(root, "builds", jobId, "site.zip");
 const distDir = path.join(root, "template", "dist");
 const confPath = path.join(root, "template", "src-tauri", "tauri.conf.json");
@@ -46,6 +57,15 @@ if (!fs.existsSync(indexPath)) {
   process.exit(1);
 }
 
+const buildDir = path.join(root, "builds", jobId);
+for (const iconName of ["logo.png", "logo.jpg", "logo.jpeg", "favicon.ico"]) {
+  const iconSrc = path.join(buildDir, iconName);
+  if (fs.existsSync(iconSrc)) {
+    fs.copyFileSync(iconSrc, path.join(distDir, iconName));
+    console.log(`Copied uploaded icon: builds/${jobId}/${iconName}`);
+  }
+}
+
 function toSafeBinaryName(name, fallback) {
   const ascii = name.replace(/[^a-zA-Z0-9_-]+/g, "");
   return (ascii || fallback).slice(0, 64);
@@ -57,7 +77,7 @@ function patchTauriConfig(filePath) {
   conf.productName = appNameZh;
   conf.mainBinaryName = safeBinaryName;
   conf.identifier = appIdentifier;
-  conf.version = "1.0.0";
+  conf.version = appVersion;
   if (conf.app?.windows?.[0]) {
     conf.app.windows[0].title = appNameZh;
   }

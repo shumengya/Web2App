@@ -28,6 +28,7 @@ env:
   APP_NAME: ${{ inputs.app_name }}
   APP_NAME_EN: ${{ inputs.app_name_en }}
   APP_IDENTIFIER: ${{ inputs.app_identifier }}
+  APP_VERSION: ${{ inputs.app_version }}
   NDK_VERSION: "27.2.12479018"
 
 jobs:
@@ -176,7 +177,7 @@ jobs:
           tag_name: build-${{ inputs.job_id }}
           name: Web2App ${{ inputs.app_name }} (${{ inputs.job_id }})
           body: |
-            Automated build for **${{ inputs.app_name }}** (English: `${{ inputs.app_name_en }}`, ID: `${{ inputs.app_identifier }}`).
+            Automated build for **${{ inputs.app_name }}** (English: `${{ inputs.app_name_en }}`, version: `${{ inputs.app_version }}`, ID: `${{ inputs.app_identifier }}`).
 
             - Windows desktop installer/portable binary
             - Android APK (signed for sideload install)

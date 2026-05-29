@@ -1,0 +1,1 @@
+ALTER TABLE builds ADD COLUMN app_version TEXT NOT NULL DEFAULT '1.0.0';

@@ -1,12 +1,14 @@
 node_modules/
-web/dist/
-server/dist/
+frontend/dist/
+!frontend/dist/index.html
 uploads/
 data/
 .env
+.dev.vars
 *.db
 *.db-journal
 .DS_Store
+.wrangler/
 target/
 template/dist/*
 !template/dist/index.html
