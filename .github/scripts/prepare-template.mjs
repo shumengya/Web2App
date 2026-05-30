@@ -99,6 +99,6 @@ if (fs.existsSync(androidConfPath)) {
   patchTauriConfig(androidConfPath);
 }
 
-generateAppIcons({ jobId });
+await generateAppIcons({ jobId });
 
 console.log("Template prepared successfully");
