@@ -112,18 +112,19 @@ const NETWORK_SECURITY_XML = `<?xml version="1.0" encoding="utf-8"?>
 `;
 
 function ensureNetworkSecurityXml(androidRoot) {
-  const resDirs = walk(androidRoot, (p) => {
-    const normalized = p.replace(/\\/g, "/");
-    return normalized.endsWith("/app/src/main/res");
-  });
-
-  for (const resDir of resDirs) {
-    const xmlDir = path.join(resDir, "xml");
-    fs.mkdirSync(xmlDir, { recursive: true });
-    const target = path.join(xmlDir, "network_security_config.xml");
-    fs.writeFileSync(target, NETWORK_SECURITY_XML);
-    console.log(`Wrote ${path.relative(root, target)}`);
+  const resDir = path.join(androidRoot, "app", "src", "main", "res");
+  if (!fs.existsSync(resDir)) {
+    console.warn(
+      `No Android res directory found for network_security_config.xml: ${resDir}`,
+    );
+    return;
   }
+
+  const xmlDir = path.join(resDir, "xml");
+  fs.mkdirSync(xmlDir, { recursive: true });
+  const target = path.join(xmlDir, "network_security_config.xml");
+  fs.writeFileSync(target, NETWORK_SECURITY_XML);
+  console.log(`Wrote ${path.relative(root, target)}`);
 }
 
 function patchAndroidManifest(androidRoot) {
