@@ -2,6 +2,10 @@ name = "web2app"
 main = "worker/src/index.ts"
 compatibility_date = "2024-11-01"
 
+# 付费 Workers 可提高 CPU 上限，避免大 zip 上传时触发 Cloudflare 1102
+[limits]
+cpu_ms = 300000
+
 [assets]
 directory = "./frontend/dist"
 not_found_handling = "single-page-application"
@@ -15,6 +19,6 @@ migrations_dir = "worker/migrations"
 
 [vars]
 DEFAULT_BRANCH = "main"
-MAX_UPLOAD_MB = "50"
+MAX_UPLOAD_MB = "25"
 GITHUB_OWNER = "shumengya"
 GITHUB_REPO = "Web2App"

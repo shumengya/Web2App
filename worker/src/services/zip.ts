@@ -7,6 +7,99 @@ export class ZipValidationError extends Error {
   }
 }
 
+const CDH_SIG = 0x02014b50;
+
+/** 只读中央目录，不解压文件体，降低 Worker CPU 占用 */
+function listZipEntryNames(buffer: Uint8Array): string[] {
+  const eocdOffset = findEndOfCentralDirectory(buffer);
+  if (eocdOffset < 0) {
+    throw new ZipValidationError("Invalid zip archive");
+  }
+
+  const view = new DataView(
+    buffer.buffer,
+    buffer.byteOffset,
+    buffer.byteLength,
+  );
+  const cdSize = view.getUint32(eocdOffset + 12, true);
+  const cdOffset = view.getUint32(eocdOffset + 16, true);
+  const names: string[] = [];
+
+  let ptr = cdOffset;
+  const end = cdOffset + cdSize;
+  while (ptr + 46 <= end) {
+    if (view.getUint32(ptr, true) !== CDH_SIG) break;
+
+    const nameLen = view.getUint16(ptr + 28, true);
+    const extraLen = view.getUint16(ptr + 30, true);
+    const commentLen = view.getUint16(ptr + 32, true);
+    const nameStart = ptr + 46;
+
+    if (nameStart + nameLen > buffer.length) break;
+
+    const raw = new TextDecoder().decode(
+      buffer.subarray(nameStart, nameStart + nameLen),
+    );
+    const name = raw.replace(/\\/g, "/");
+    if (!name.endsWith("/")) {
+      names.push(name);
+    }
+
+    ptr = nameStart + nameLen + extraLen + commentLen;
+  }
+
+  if (names.length === 0) {
+    throw new ZipValidationError("Zip archive is empty");
+  }
+
+  return names;
+}
+
+function findEndOfCentralDirectory(buffer: Uint8Array): number {
+  const minEocd = 22;
+  const maxComment = 0xffff;
+  const start = Math.max(0, buffer.length - minEocd - maxComment);
+
+  for (let i = buffer.length - minEocd; i >= start; i--) {
+    if (
+      buffer[i] === 0x50 &&
+      buffer[i + 1] === 0x4b &&
+      buffer[i + 2] === 0x05 &&
+      buffer[i + 3] === 0x06
+    ) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+function needsFlatten(entries: string[]): boolean {
+  if (entries.includes("index.html")) return false;
+
+  const indexEntry = entries.find((entry) => {
+    const parts = entry.split("/");
+    return parts.length === 2 && parts[1] === "index.html";
+  });
+
+  if (!indexEntry) {
+    throw new ZipValidationError(
+      "Zip must contain index.html at root or in a single top-level folder",
+    );
+  }
+
+  const folder = indexEntry.split("/")[0];
+  const topDirs = new Set(entries.map((k) => k.split("/")[0]).filter(Boolean));
+
+  if (topDirs.size !== 1 || !topDirs.has(folder)) {
+    throw new ZipValidationError(
+      "index.html must be at zip root or inside exactly one folder",
+    );
+  }
+
+  return true;
+}
+
 export function validateZipBuffer(
   buffer: Uint8Array,
   maxBytes: number,
@@ -17,31 +110,17 @@ export function validateZipBuffer(
     );
   }
 
+  const entries = listZipEntryNames(buffer);
+
+  if (!needsFlatten(entries)) {
+    return { normalizedBuffer: buffer };
+  }
+
   let files: Record<string, Uint8Array>;
   try {
     files = unzipSync(buffer);
   } catch {
     throw new ZipValidationError("Invalid zip archive");
-  }
-
-  const entries = Object.keys(files).filter(
-    (key) => !key.endsWith("/") && files[key].length > 0,
-  );
-  if (entries.length === 0) {
-    throw new ZipValidationError("Zip archive is empty");
-  }
-
-  const indexEntry = entries.find((entry) => {
-    const normalized = entry.replace(/\\/g, "/");
-    if (normalized === "index.html") return true;
-    const parts = normalized.split("/");
-    return parts.length === 2 && parts[1] === "index.html";
-  });
-
-  if (!indexEntry) {
-    throw new ZipValidationError(
-      "Zip must contain index.html at root or in a single top-level folder",
-    );
   }
 
   const normalized = normalizeZipFiles(files);

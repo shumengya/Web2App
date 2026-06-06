@@ -7,20 +7,34 @@ import {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const url = new URL(request.url);
+    try {
+      const url = new URL(request.url);
 
-    if (request.method === "OPTIONS" && url.pathname.startsWith("/api/")) {
-      return corsPreflightResponse(request);
+      if (request.method === "OPTIONS" && url.pathname.startsWith("/api/")) {
+        return corsPreflightResponse(request);
+      }
+
+      if (url.pathname === "/api/health") {
+        return jsonResponseWithCors(request, { ok: true });
+      }
+
+      if (url.pathname.startsWith("/api/builds")) {
+        return await handleBuildsRequest(request, env, url);
+      }
+
+      return env.ASSETS.fetch(request);
+    } catch (error) {
+      console.error("Unhandled worker error:", error);
+      return jsonResponseWithCors(
+        request,
+        {
+          error:
+            error instanceof Error
+              ? error.message
+              : "Internal server error",
+        },
+        500,
+      );
     }
-
-    if (url.pathname === "/api/health") {
-      return jsonResponseWithCors(request, { ok: true });
-    }
-
-    if (url.pathname.startsWith("/api/builds")) {
-      return handleBuildsRequest(request, env, url);
-    }
-
-    return env.ASSETS.fetch(request);
   },
 };

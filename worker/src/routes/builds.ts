@@ -9,18 +9,6 @@ import {
   type BuildRecord,
 } from "../db/builds";
 import { jsonResponseWithCors } from "../lib/response";
-
-function apiJson(
-  request: Request,
-  data: unknown,
-  status = 200,
-): Response {
-  return jsonResponseWithCors(request, data, status);
-}
-
-function apiError(request: Request, message: string, status: number): Response {
-  return jsonResponseWithCors(request, { error: message }, status);
-}
 import {
   getActionsRunUrl,
   getReleaseAssets,
@@ -42,6 +30,18 @@ import {
   validateZipBuffer,
   ZipValidationError,
 } from "../services/zip";
+
+function apiJson(
+  request: Request,
+  data: unknown,
+  status = 200,
+): Response {
+  return jsonResponseWithCors(request, data, status);
+}
+
+function apiError(request: Request, message: string, status: number): Response {
+  return jsonResponseWithCors(request, { error: message }, status);
+}
 
 function maxUploadBytes(env: Env): number {
   const mb = Number(env.MAX_UPLOAD_MB ?? "50");

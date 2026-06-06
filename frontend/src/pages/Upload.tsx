@@ -1,7 +1,8 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createBuild } from "../api/client";
+import { assertUploadSize, createBuild } from "../api/client";
 import { getDefaultAppVersion } from "../lib/version";
+import { formatMaxUploadLabel } from "../lib/upload-limits";
 
 export default function Upload() {
   const navigate = useNavigate();
@@ -29,6 +30,13 @@ export default function Upload() {
     event.preventDefault();
     if (!file) {
       setError("请选择 zip 文件");
+      return;
+    }
+
+    try {
+      assertUploadSize(file);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "文件过大");
       return;
     }
 
@@ -67,7 +75,8 @@ export default function Upload() {
       <section className="doc-section">
         <h2>使用说明</h2>
         <p className="prose">
-          压缩包需包含 index.html（根目录或单层文件夹内），默认不超过 50MB。
+          压缩包需包含 index.html（根目录或单层文件夹内），默认不超过{" "}
+          {formatMaxUploadLabel()}。
           可单独上传应用图标（PNG / JPG / ICO，优先于 zip 内图标），版本号默认取当天日期（如
           2026.5.29）。中文名用于展示，英文名用于安装包与 Bundle ID。
         </p>
