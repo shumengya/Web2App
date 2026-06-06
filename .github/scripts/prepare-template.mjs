@@ -84,6 +84,23 @@ function patchTauriConfig(filePath) {
   if (conf.app?.windows?.[0]) {
     conf.app.windows[0].title = appNameZh;
   }
+  conf.app = {
+    ...conf.app,
+    security: {
+      csp: {
+        "default-src": "'self' asset: tauri: https: http: data: blob: file:",
+        "connect-src":
+          "'self' asset: tauri: https: http: ws: wss: data: blob: file:",
+        "img-src": "'self' asset: tauri: https: http: data: blob: file:",
+        "media-src": "'self' asset: tauri: https: http: data: blob: file:",
+        "style-src": "'self' 'unsafe-inline' asset: tauri: https: http:",
+        "script-src":
+          "'self' 'unsafe-inline' 'unsafe-eval' asset: tauri: https: http:",
+        "frame-src": "'self' asset: tauri: https: http: data: blob:",
+        "worker-src": "'self' blob: data:",
+      },
+    },
+  };
   conf.bundle = {
     ...conf.bundle,
     active: true,

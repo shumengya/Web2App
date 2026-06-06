@@ -1,13 +1,20 @@
 import type { Env } from "./env";
 import { handleBuildsRequest } from "./routes/builds";
-import { jsonResponse } from "./lib/response";
+import {
+  corsPreflightResponse,
+  jsonResponseWithCors,
+} from "./lib/response";
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
+    if (request.method === "OPTIONS" && url.pathname.startsWith("/api/")) {
+      return corsPreflightResponse(request);
+    }
+
     if (url.pathname === "/api/health") {
-      return jsonResponse({ ok: true });
+      return jsonResponseWithCors(request, { ok: true });
     }
 
     if (url.pathname.startsWith("/api/builds")) {

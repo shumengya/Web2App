@@ -100,4 +100,100 @@ for (const file of walk(androidRoot, (p) => {
   patchThemes(file);
 }
 
-console.log("Android system bar patch applied");
+const NETWORK_SECURITY_XML = `<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
+`;
+
+function ensureNetworkSecurityXml(androidRoot) {
+  const resDirs = walk(androidRoot, (p) => {
+    const normalized = p.replace(/\\/g, "/");
+    return normalized.endsWith("/app/src/main/res");
+  });
+
+  for (const resDir of resDirs) {
+    const xmlDir = path.join(resDir, "xml");
+    fs.mkdirSync(xmlDir, { recursive: true });
+    const target = path.join(xmlDir, "network_security_config.xml");
+    fs.writeFileSync(target, NETWORK_SECURITY_XML);
+    console.log(`Wrote ${path.relative(root, target)}`);
+  }
+}
+
+function patchAndroidManifest(androidRoot) {
+  for (const file of walk(androidRoot, (p) => p.endsWith("AndroidManifest.xml"))) {
+    const normalized = file.replace(/\\/g, "/");
+    if (!normalized.includes("/src/main/")) continue;
+
+    let xml = fs.readFileSync(file, "utf8");
+    if (!xml.includes("android.permission.INTERNET")) {
+      xml = xml.replace(
+        /<application/,
+        '    <uses-permission android:name="android.permission.INTERNET" />\n\n    <application',
+      );
+    }
+
+    xml = xml.replace(
+      /android:usesCleartextTraffic="\$\{usesCleartextTraffic\}"/g,
+      'android:usesCleartextTraffic="true"',
+    );
+    xml = xml.replace(
+      /android:usesCleartextTraffic="false"/g,
+      'android:usesCleartextTraffic="true"',
+    );
+
+    if (!xml.includes("usesCleartextTraffic")) {
+      xml = xml.replace(
+        /<application([^>]*)>/,
+        '<application$1 android:usesCleartextTraffic="true">',
+      );
+    }
+
+    if (!xml.includes("networkSecurityConfig")) {
+      xml = xml.replace(
+        /<application([^>]*)>/,
+        '<application$1 android:networkSecurityConfig="@xml/network_security_config">',
+      );
+    }
+
+    fs.writeFileSync(file, xml);
+    console.log(`Patched AndroidManifest: ${path.relative(root, file)}`);
+  }
+}
+
+function patchGradleCleartext(androidRoot) {
+  for (const file of walk(androidRoot, (p) => p.endsWith("build.gradle.kts"))) {
+    const normalized = file.replace(/\\/g, "/");
+    if (!normalized.includes("/app/")) continue;
+
+    let content = fs.readFileSync(file, "utf8");
+    if (content.includes('manifestPlaceholders["usesCleartextTraffic"]')) {
+      content = content.replace(
+        /manifestPlaceholders\["usesCleartextTraffic"\]\s*=\s*"[^"]*"/,
+        'manifestPlaceholders["usesCleartextTraffic"] = "true"',
+      );
+    } else if (content.includes("defaultConfig {")) {
+      content = content.replace(
+        /defaultConfig\s*\{/,
+        `defaultConfig {\n        manifestPlaceholders["usesCleartextTraffic"] = "true"`,
+      );
+    } else {
+      continue;
+    }
+
+    fs.writeFileSync(file, content);
+    console.log(`Patched Gradle cleartext: ${path.relative(root, file)}`);
+  }
+}
+
+ensureNetworkSecurityXml(androidRoot);
+patchAndroidManifest(androidRoot);
+patchGradleCleartext(androidRoot);
+
+console.log("Android app patches applied (system bars + network)");

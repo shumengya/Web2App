@@ -8,7 +8,19 @@ import {
   updateBuild,
   type BuildRecord,
 } from "../db/builds";
-import { errorResponse, jsonResponse } from "../lib/response";
+import { jsonResponseWithCors } from "../lib/response";
+
+function apiJson(
+  request: Request,
+  data: unknown,
+  status = 200,
+): Response {
+  return jsonResponseWithCors(request, data, status);
+}
+
+function apiError(request: Request, message: string, status: number): Response {
+  return jsonResponseWithCors(request, { error: message }, status);
+}
 import {
   getActionsRunUrl,
   getReleaseAssets,
@@ -45,7 +57,7 @@ export async function handleBuildsRequest(
 
   if (path === "/api/builds" && request.method === "GET") {
     const builds = (await listBuilds(env)).map(toPublicBuild);
-    return jsonResponse({ builds });
+    return apiJson(request, { builds });
   }
 
   const match = path.match(/^\/api\/builds\/([^/]+)$/);
@@ -55,24 +67,24 @@ export async function handleBuildsRequest(
     if (request.method === "GET") {
       const record = await getBuild(env, id);
       if (!record) {
-        return errorResponse("Build not found", 404);
+        return apiError(request, "Build not found", 404);
       }
 
       const refreshed = await refreshBuildStatus(env, record);
-      return jsonResponse({
+      return apiJson(request, {
         ...toPublicBuild(refreshed),
         actionsUrl: getActionsRunUrl(env, refreshed.workflow_run_id),
       });
     }
 
-    return errorResponse("Method not allowed", 405);
+    return apiError(request, "Method not allowed", 405);
   }
 
   if (path === "/api/builds" && request.method === "POST") {
     return createBuild(request, env);
   }
 
-  return errorResponse("Not found", 404);
+  return apiError(request, "Not found", 404);
 }
 
 async function createBuild(request: Request, env: Env): Promise<Response> {
@@ -91,11 +103,11 @@ async function createBuild(request: Request, env: Env): Promise<Response> {
 
     const file = formData.get("file");
     if (!(file instanceof File)) {
-      return errorResponse("file is required", 400);
+      return apiError(request, "file is required", 400);
     }
 
     if (!file.name.toLowerCase().endsWith(".zip")) {
-      return errorResponse("Only .zip files are supported", 400);
+      return apiError(request, "Only .zip files are supported", 400);
     }
 
     const buffer = new Uint8Array(await file.arrayBuffer());
@@ -143,7 +155,8 @@ async function createBuild(request: Request, env: Env): Promise<Response> {
       status: "in_progress",
     });
 
-    return jsonResponse(
+    return apiJson(
+      request,
       {
         id: jobId,
         status: "in_progress",
@@ -157,11 +170,12 @@ async function createBuild(request: Request, env: Env): Promise<Response> {
       error instanceof VersionValidationError ||
       error instanceof IconValidationError
     ) {
-      return errorResponse(error.message, 400);
+      return apiError(request, error.message, 400);
     }
 
     console.error(error);
-    return errorResponse(
+    return apiError(
+      request,
       error instanceof Error ? error.message : "Failed to create build",
       500,
     );
