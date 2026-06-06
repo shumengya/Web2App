@@ -145,6 +145,9 @@ jobs:
         env:
           NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
 
+      - name: Disable edge-to-edge system bars on Android
+        run: node .github/scripts/patch-android-system-bars.mjs
+
       - name: Regenerate app icons for Android
         run: node .github/scripts/generate-app-icons.mjs
         env:
