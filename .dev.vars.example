@@ -1,0 +1,15 @@
+# Wrangler 本地开发密钥（复制为 .dev.vars 后填写真实值）
+# cp .dev.vars.example .dev.vars
+
+# GitHub Personal Access Token，权限至少包含 repo、workflow
+GITHUB_TOKEN=ghp_xxx
+
+# 用于接收构建产物的 GitHub 仓库
+GITHUB_OWNER=your-github-username
+GITHUB_REPO=Web2App
+
+# 触发 workflow 的默认分支（需与仓库默认分支一致）
+DEFAULT_BRANCH=main
+
+# 单次上传 zip 的最大体积（MB）
+MAX_UPLOAD_MB=50
