@@ -1,11 +1,15 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 
 export default function Layout() {
+  const { pathname } = useLocation();
+  const isBuilds = pathname === "/jobs";
+
   return (
     <div className="app-shell">
       <header className="site-header">
         <div className="site-header-inner">
           <Link to="/" className="site-brand">
+            <img src="/logo.svg" alt="" className="site-logo" />
             Web2App
           </Link>
           <nav className="site-nav">
@@ -15,7 +19,7 @@ export default function Layout() {
         </div>
       </header>
       <main className="site-main">
-        <div className="content">
+        <div className={isBuilds ? "content content-wide" : "content"}>
           <Outlet />
         </div>
       </main>

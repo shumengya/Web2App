@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "concurrently -n web,worker -c green,blue \"npm run dev -w frontend\" \"wrangler dev\"",
     "build": "npm run build -w frontend",
+    "build:desktop": "npm run build:desktop -w frontend",
     "deploy": "npm run build && wrangler deploy",
     "db:migrate:local": "wrangler d1 migrations apply web2app --local",
     "db:migrate:remote": "wrangler d1 migrations apply web2app --remote"

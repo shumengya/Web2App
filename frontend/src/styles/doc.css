@@ -74,11 +74,21 @@ a:hover {
   font-size: 1.125rem;
   color: var(--text);
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .site-brand:hover {
   text-decoration: none;
   color: var(--accent);
+}
+
+.site-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  flex-shrink: 0;
 }
 
 .site-nav {
@@ -95,6 +105,10 @@ a:hover {
 .content {
   max-width: var(--content-max);
   margin: 0 auto;
+}
+
+.content-wide {
+  max-width: 64rem;
 }
 
 .page-title {
@@ -353,6 +367,209 @@ a:hover {
   text-align: center;
   font-size: 0.8125rem;
   color: var(--muted);
+}
+
+/* ===== Builds page layout ===== */
+.builds-layout {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.builds-sidebar {
+  width: 190px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0;
+  position: sticky;
+  top: 1rem;
+}
+
+.sidebar-header {
+  display: none;
+}
+
+.sidebar-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sidebar-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.25rem;
+  color: var(--muted);
+  line-height: 1;
+}
+
+.sidebar-close:hover {
+  color: var(--text);
+}
+
+.pkg-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pkg-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.875rem;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--text);
+  border-radius: 0;
+  transition: background 0.1s;
+}
+
+.pkg-item:hover {
+  background: var(--bg);
+}
+
+.pkg-item-active {
+  color: var(--accent);
+  font-weight: 600;
+  background: #eff6ff;
+}
+
+.pkg-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pkg-name {
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pkg-en {
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pkg-item-active .pkg-en {
+  color: #93c5fd;
+}
+
+.pkg-count {
+  flex-shrink: 0;
+  background: #e5e7eb;
+  color: #6b7280;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  border-radius: 10px;
+  min-width: 1.375rem;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.pkg-item-active .pkg-count {
+  background: #bfdbfe;
+  color: var(--accent);
+}
+
+.builds-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.builds-topbar {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 0.25rem;
+}
+
+.sidebar-toggle {
+  display: none;
+}
+
+.sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .builds-layout {
+    display: block;
+  }
+
+  .sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    padding: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 1.125rem;
+    color: var(--text);
+  }
+
+  .builds-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    max-width: 85vw;
+    height: 100vh;
+    z-index: 200;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    border-radius: 0;
+    border: none;
+    border-right: 1px solid var(--border);
+    padding-top: 0;
+  }
+
+  .builds-sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.25rem;
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 199;
+  }
 }
 
 @media (min-width: 768px) {

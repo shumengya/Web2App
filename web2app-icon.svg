@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e40af"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="100" fill="url(#bg)"/>
+  <!-- Subtle top sheen -->
+  <rect width="512" height="256" rx="100" fill="url(#glow)"/>
+
+  <!-- ===== LEFT: Browser window ===== -->
+  <rect x="44" y="155" width="192" height="148" rx="14"
+        fill="white" fill-opacity="0.12" stroke="white" stroke-width="11" stroke-opacity="0.9"/>
+  <!-- Title bar stripe -->
+  <rect x="44" y="155" width="192" height="40" rx="14" fill="white" fill-opacity="0.18"/>
+  <rect x="44" y="181" width="192" height="14" fill="white" fill-opacity="0.18"/>
+  <!-- Traffic lights -->
+  <circle cx="70"  cy="175" r="7" fill="#ef4444" fill-opacity="0.85"/>
+  <circle cx="92"  cy="175" r="7" fill="#f59e0b" fill-opacity="0.85"/>
+  <circle cx="114" cy="175" r="7" fill="#22c55e" fill-opacity="0.85"/>
+  <!-- URL bar -->
+  <rect x="130" y="165" width="90" height="18" rx="9" fill="white" fill-opacity="0.28"/>
+  <!-- Page content lines -->
+  <rect x="64" y="212" width="152" height="10" rx="5" fill="white" fill-opacity="0.55"/>
+  <rect x="64" y="232" width="118" height="10" rx="5" fill="white" fill-opacity="0.38"/>
+  <rect x="64" y="252" width="134" height="10" rx="5" fill="white" fill-opacity="0.38"/>
+  <rect x="64" y="272" width="96"  height="10" rx="5" fill="white" fill-opacity="0.25"/>
+
+  <!-- ===== MIDDLE: Conversion arrow ===== -->
+  <!-- Shaft -->
+  <line x1="256" y1="256" x2="302" y2="256"
+        stroke="white" stroke-width="14" stroke-linecap="round" stroke-opacity="0.95"/>
+  <!-- Arrowhead -->
+  <polyline points="284,236 308,256 284,276"
+            fill="none" stroke="white" stroke-width="14"
+            stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.95"/>
+  <!-- Sparkle particles -->
+  <circle cx="264" cy="222" r="5.5" fill="white" fill-opacity="0.72"/>
+  <circle cx="280" cy="212" r="3.5" fill="white" fill-opacity="0.50"/>
+  <circle cx="298" cy="218" r="2.5" fill="white" fill-opacity="0.38"/>
+  <circle cx="268" cy="296" r="4.5" fill="white" fill-opacity="0.62"/>
+  <circle cx="258" cy="308" r="3"   fill="white" fill-opacity="0.42"/>
+  <circle cx="292" cy="302" r="2.5" fill="white" fill-opacity="0.32"/>
+
+  <!-- ===== RIGHT: Phone ===== -->
+  <rect x="324" y="158" width="130" height="214" rx="24"
+        fill="white" fill-opacity="0.12" stroke="white" stroke-width="11" stroke-opacity="0.9"/>
+  <!-- Punch-hole camera -->
+  <circle cx="389" cy="175" r="7" fill="white" fill-opacity="0.45"/>
+  <!-- Screen area -->
+  <rect x="340" y="192" width="98" height="156" rx="7" fill="white" fill-opacity="0.10"/>
+  <!-- App icon grid (3×2) -->
+  <rect x="348" y="202" width="26" height="26" rx="7" fill="white" fill-opacity="0.50"/>
+  <rect x="382" y="202" width="26" height="26" rx="7" fill="white" fill-opacity="0.50"/>
+  <rect x="416" y="202" width="26" height="26" rx="7" fill="white" fill-opacity="0.38"/>
+  <rect x="348" y="236" width="26" height="26" rx="7" fill="white" fill-opacity="0.50"/>
+  <rect x="382" y="236" width="26" height="26" rx="7" fill="white" fill-opacity="0.38"/>
+  <rect x="416" y="236" width="26" height="26" rx="7" fill="white" fill-opacity="0.28"/>
+  <!-- Bottom mini-bar rows -->
+  <rect x="348" y="272" width="94" height="8" rx="4" fill="white" fill-opacity="0.25"/>
+  <rect x="348" y="288" width="72" height="8" rx="4" fill="white" fill-opacity="0.18"/>
+  <!-- Home indicator bar -->
+  <rect x="361" y="356" width="56" height="6" rx="3" fill="white" fill-opacity="0.65"/>
+</svg>

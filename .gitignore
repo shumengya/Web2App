@@ -1,6 +1,8 @@
 node_modules/
 frontend/dist/
 !frontend/dist/index.html
+frontend/dist-desktop/
+frontend/.env.desktop
 uploads/
 data/
 .env
