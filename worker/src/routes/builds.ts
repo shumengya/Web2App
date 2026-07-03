@@ -1,4 +1,10 @@
-import { nanoid } from "nanoid";
+import { customAlphabet } from "nanoid";
+
+// GitHub published releases reject tag names ending with '-'.
+const generateJobId = customAlphabet(
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+  10,
+);
 import type { Env } from "../env";
 import {
   getBuild,
@@ -112,7 +118,7 @@ async function createBuild(request: Request, env: Env): Promise<Response> {
 
     const buffer = new Uint8Array(await file.arrayBuffer());
     const { normalizedBuffer } = validateZipBuffer(buffer, maxUploadBytes(env));
-    const jobId = nanoid(10);
+    const jobId = generateJobId();
     const slug = slugifyIdentifier(appNameEn) || jobId.toLowerCase();
     const appIdentifier = normalizeAppIdentifier(
       identifierInput || `com.web2app.${slug}`,
@@ -148,6 +154,7 @@ async function createBuild(request: Request, env: Env): Promise<Response> {
       appName: appNameZh,
       appNameEn,
       appIdentifier,
+      appVersion,
     });
 
     await updateBuild(env, jobId, {

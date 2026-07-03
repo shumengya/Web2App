@@ -115,6 +115,7 @@ export async function triggerBuildWorkflow(
     appName: string;
     appNameEn: string;
     appIdentifier: string;
+    appVersion: string;
   },
 ): Promise<number> {
   const { owner, repo, branch } = getGitHubConfig(env);
@@ -133,6 +134,7 @@ export async function triggerBuildWorkflow(
           app_name: input.appName,
           app_name_en: input.appNameEn,
           app_identifier: input.appIdentifier,
+          app_version: input.appVersion,
         },
       }),
     },
@@ -217,18 +219,19 @@ export async function getReleaseAssets(
     assets: Array<{ name: string; browser_download_url: string }>;
   };
 
-  let windowsUrl: string | null = null;
+  let windowsInstallerUrl: string | null = null;
+  let windowsFallbackUrl: string | null = null;
   let androidUrl: string | null = null;
 
   for (const asset of release.assets) {
     const name = asset.name.toLowerCase();
-    if (
-      !windowsUrl &&
-      (name.endsWith(".exe") ||
-        name.endsWith(".msi") ||
-        name.includes("windows"))
+    if (name.endsWith("-setup.exe") || name.endsWith(".msi")) {
+      windowsInstallerUrl = asset.browser_download_url;
+    } else if (
+      !windowsFallbackUrl &&
+      name.endsWith(".exe")
     ) {
-      windowsUrl = asset.browser_download_url;
+      windowsFallbackUrl = asset.browser_download_url;
     }
     if (
       !androidUrl &&
@@ -238,7 +241,10 @@ export async function getReleaseAssets(
     }
   }
 
-  return { windowsUrl, androidUrl };
+  return {
+    windowsUrl: windowsInstallerUrl ?? windowsFallbackUrl,
+    androidUrl,
+  };
 }
 
 export function getActionsRunUrl(env: Env, runId: number | null): string | null {

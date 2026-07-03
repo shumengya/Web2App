@@ -19,6 +19,10 @@ on:
         description: Application bundle identifier
         required: true
         type: string
+      app_version:
+        description: Application version string
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -67,14 +71,17 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path artifacts/windows | Out-Null
-          $bundleRoot = "template/src-tauri/target/release/bundle"
-          if (Test-Path $bundleRoot) {
-            Get-ChildItem -Path $bundleRoot -Recurse -Include *setup.exe,*.exe,*.msi -ErrorAction SilentlyContinue |
-              Copy-Item -Destination artifacts/windows -Force
+          $nsisDir = "template/src-tauri/target/release/bundle/nsis"
+          if (-not (Test-Path $nsisDir)) {
+            Write-Error "NSIS bundle directory not found: $nsisDir"
+            exit 1
           }
-          Get-ChildItem -Path "template/src-tauri/target/release" -Filter "*.exe" -ErrorAction SilentlyContinue |
-            Where-Object { $_.Name -notmatch "wix|candle|light" } |
-            Copy-Item -Destination artifacts/windows -Force
+          $installers = Get-ChildItem -Path $nsisDir -Filter "*-setup.exe"
+          if (-not $installers) {
+            Write-Error "No NSIS installer (*-setup.exe) found in $nsisDir"
+            exit 1
+          }
+          $installers | Copy-Item -Destination artifacts/windows -Force
           Get-ChildItem artifacts/windows
 
       - uses: actions/upload-artifact@v4
@@ -212,7 +219,7 @@ jobs:
           body: |
             Automated build for **${{ inputs.app_name }}** (English: `${{ inputs.app_name_en }}`, version: `${{ inputs.app_version }}`, ID: `${{ inputs.app_identifier }}`).
 
-            - Windows desktop installer/portable binary
+            - Windows NSIS installer (*-setup.exe)
             - Android APK (arm64-v8a, signed for sideload install)
           draft: false
           prerelease: true
