@@ -1,5 +1,7 @@
 use tauri::Manager;
 
+const TAURI_SHELL_SCRIPT: &str = include_str!("../../scripts/tauri-shell.js");
+
 const IN_APP_NAV_SCRIPT: &str = r##"
 (function () {
   if (window.__web2appNavInstalled) return;
@@ -68,12 +70,14 @@ pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
             if let Some(window) = app.get_webview_window("main") {
+                let _ = window.eval(TAURI_SHELL_SCRIPT);
                 let _ = window.eval(IN_APP_NAV_SCRIPT);
             }
             Ok(())
         })
         .on_page_load(|webview, payload| {
             if payload.event() == tauri::webview::PageLoadEvent::Finished {
+                let _ = webview.eval(TAURI_SHELL_SCRIPT);
                 let _ = webview.eval(IN_APP_NAV_SCRIPT);
             }
         })

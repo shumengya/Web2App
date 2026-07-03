@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import AdmZip from "adm-zip";
 import { BUNDLE_ICONS, generateAppIcons } from "./generate-app-icons.mjs";
 import { injectInAppNav } from "./inject-in-app-nav.mjs";
+import { injectTauriShell } from "./inject-tauri-shell.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "../..");
@@ -109,6 +110,7 @@ function patchTauriConfig(filePath) {
   fs.writeFileSync(filePath, `${JSON.stringify(conf, null, 2)}\n`);
 }
 
+injectTauriShell(distDir);
 injectInAppNav(distDir);
 
 patchTauriConfig(confPath);

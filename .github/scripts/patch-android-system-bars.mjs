@@ -32,6 +32,8 @@ function patchMainActivity(filePath) {
   const content = `package ${pkg}
 
 import android.os.Bundle
+import android.webkit.CookieManager
+import android.webkit.WebView
 import androidx.core.view.WindowCompat
 
 class MainActivity : TauriActivity() {
@@ -39,6 +41,13 @@ class MainActivity : TauriActivity() {
         super.onCreate(savedInstanceState)
         // 内容不延伸到状态栏 / 导航栏区域
         WindowCompat.setDecorFitsSystemWindows(window, true)
+        CookieManager.getInstance().setAcceptCookie(true)
+    }
+
+    override fun onWebViewCreate(webView: WebView) {
+        super.onWebViewCreate(webView)
+        // Android WebView 默认拦截跨站 Cookie；桌面壳请求远程 API 时需放行
+        CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
     }
 }
 `;
