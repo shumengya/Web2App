@@ -136,16 +136,34 @@ function ensureNetworkSecurityXml(androidRoot) {
   console.log(`Wrote ${path.relative(root, target)}`);
 }
 
+const ANDROID_PERMISSIONS = [
+  "android.permission.INTERNET",
+  "android.permission.CAMERA",
+];
+
+function ensureUsesPermission(xml, permission) {
+  if (xml.includes(permission)) return xml;
+  const tag = `    <uses-permission android:name="${permission}" />\n`;
+  if (xml.includes("<application")) {
+    return xml.replace(/<application/, `${tag}\n    <application`);
+  }
+  return xml.replace(/<\/manifest>/, `${tag}</manifest>`);
+}
+
 function patchAndroidManifest(androidRoot) {
   for (const file of walk(androidRoot, (p) => p.endsWith("AndroidManifest.xml"))) {
     const normalized = file.replace(/\\/g, "/");
     if (!normalized.includes("/src/main/")) continue;
 
     let xml = fs.readFileSync(file, "utf8");
-    if (!xml.includes("android.permission.INTERNET")) {
+    for (const permission of ANDROID_PERMISSIONS) {
+      xml = ensureUsesPermission(xml, permission);
+    }
+
+    if (!xml.includes("android.hardware.camera")) {
       xml = xml.replace(
         /<application/,
-        '    <uses-permission android:name="android.permission.INTERNET" />\n\n    <application',
+        '    <uses-feature android:name="android.hardware.camera" android:required="false" />\n\n    <application',
       );
     }
 
@@ -206,4 +224,4 @@ ensureNetworkSecurityXml(androidRoot);
 patchAndroidManifest(androidRoot);
 patchGradleCleartext(androidRoot);
 
-console.log("Android app patches applied (system bars + network)");
+console.log("Android app patches applied (system bars + network + camera)");
