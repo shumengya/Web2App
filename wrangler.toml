@@ -4,6 +4,8 @@ compatibility_date = "2024-11-01"
 
 [assets]
 directory = "./frontend/dist"
+binding = "ASSETS"
+# SPA：未匹配的前端路由（如 /jobs/:id）经 env.ASSETS.fetch 回退到 index.html
 not_found_handling = "single-page-application"
 
 # 运行 `wrangler d1 create web2app` 后将输出的 database_id 替换下方占位符

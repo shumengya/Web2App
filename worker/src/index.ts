@@ -22,6 +22,18 @@ export default {
         return await handleBuildsRequest(request, env, url);
       }
 
+      // 静态资源 / SPA 回退（需 wrangler.toml [assets] binding = "ASSETS"）
+      if (!env.ASSETS) {
+        return jsonResponseWithCors(
+          request,
+          {
+            error:
+              "ASSETS binding is not configured. Set [assets] binding = \"ASSETS\" in wrangler.toml and redeploy.",
+          },
+          500,
+        );
+      }
+
       return env.ASSETS.fetch(request);
     } catch (error) {
       console.error("Unhandled worker error:", error);

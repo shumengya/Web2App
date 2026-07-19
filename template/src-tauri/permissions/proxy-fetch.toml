@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "allow-proxy-fetch"
+description = "Allow the app webview to perform native HTTP requests (CORS bypass for packaged sites)."
+commands.allow = ["proxy_fetch"]
